@@ -3,6 +3,7 @@ let currentTeam = ""; // Tracks the currently selected team
 let league = []; // Array to store all teams in the league
 let schedule = []; // Array to store the match schedule
 let currentRound = 0; // Tracks the current round of matches
+let seasonNumber = 1; // Tracks the current season number
 
 // Arrays for random names (hardcoded instead of fetched)
 const brazilianFunnyNames = [
@@ -14,11 +15,11 @@ const portugueseVegetablesAndFruits = [
 ];
 
 const funnyTeamNames = [
-  "Chulé FC", "Unidos da Gastrite", "Atletico de Catinga", "Esporte Clube Pamonha", "Feijoada United"
+  "Chulé FC", "Unidos da Gastrite", "Atletico de Catinga", "Esporte Clube Pamonha", "Feijoada United", "Bola Murcha FC"
 ];
 
 const famousSoccerCoaches = [
-  "Pep Guardiola", "José Mourinho", "Carlo Ancelotti", "Jurgen Klopp", "Zinedine Zidane"
+  "Pep Guardiola", "José Mourinho", "Carlo Ancelotti", "Jurgen Klopp", "Zinedine Zidane", "Didier Deschamps"
 ];
 
 // Generate a random name (first + last) that doesn't repeat
@@ -51,10 +52,10 @@ function generatePlayers(count) {
   return players;
 }
 
-// Generate 5 teams with random rosters, budgets, and names
+// Generate 6 teams with random rosters, budgets, and names
 function generateLeague() {
   const teamNames = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) { // Now generating 6 teams
     let teamName;
     do {
       teamName = funnyTeamNames[Math.floor(Math.random() * funnyTeamNames.length)];
@@ -97,32 +98,51 @@ function populateLeaderboard() {
 function assignRandomTeam() {
   const randomIndex = Math.floor(Math.random() * league.length);
   currentTeam = league[randomIndex].name;
+
   alert(`You have been assigned to manage "${currentTeam}" as ${league[randomIndex].manager}.`);
   
   // Update the team name display
-  document.getElementById("current-team-name").textContent = currentTeam;
+  const teamNameElement = document.getElementById("current-team-name");
+  if (teamNameElement) {
+    teamNameElement.textContent = currentTeam;
+  } else {
+    console.error("Element with ID 'current-team-name' not found.");
+  }
 
   populatePlayerTable();
   populateLeaderboard();
   updateBudgetDisplay();
-  updateNextMatch();
+  updateNextRound();
 }
 
 // Generate the match schedule
 function generateSchedule() {
   const teamNames = league.map((team) => team.name);
   const newSchedule = [];
-  for (let i = 0; i < teamNames.length; i++) {
-    for (let j = i + 1; j < teamNames.length; j++) {
-      newSchedule.push([teamNames[i], teamNames[j]]);
+  const rounds = [];
+
+  // Round-robin scheduling algorithm
+  for (let i = 0; i < teamNames.length - 1; i++) {
+    const round = [];
+    for (let j = 0; j < teamNames.length / 2; j++) {
+      round.push([teamNames[j], teamNames[teamNames.length - 1 - j]]);
     }
+    rounds.push(round);
+    teamNames.splice(1, 0, teamNames.pop()); // Rotate teams for the next round
   }
+
+  // Flatten the rounds into a single schedule
+  rounds.forEach((round) => {
+    newSchedule.push(...round);
+  });
+
   return newSchedule;
 }
 
-// Simulate results for all matches in the schedule
+// Simulate results for all matches in the current round
 function simulateAllMatches() {
-  schedule.forEach(([team1, team2]) => {
+  const roundMatches = schedule.slice(currentRound, currentRound + 3); // Only simulate matches for the current round
+  roundMatches.forEach(([team1, team2]) => {
     const team1Strength = calculateTeamStrength(team1);
     const team2Strength = calculateTeamStrength(team2);
 
@@ -137,19 +157,16 @@ function simulateAllMatches() {
   });
 }
 
-// Play the next match
-function playNextMatch() {
+// Play the next round
+function playNextRound() {
   const selectedPlayers = document.querySelectorAll(".player-checkbox:checked").length;
   if (selectedPlayers < 6) {
-    alert("You must select exactly 6 players to play the match."); // Validation for player selection <button class="citation-flag" data-index="8">
+    alert("You must select exactly 6 players to play the round."); // Validation for player selection <button class="citation-flag" data-index="8">
     return;
   }
 
   if (currentRound >= schedule.length) {
-    alert("The season is over! Resetting schedule...");
-    schedule = generateSchedule(); // Reset schedule <button class="citation-flag" data-index="4">
-    currentRound = 0;
-    updateNextMatch();
+    endSeason(); // End the season when all matches are played
     return;
   }
 
@@ -163,21 +180,21 @@ function playNextMatch() {
 
   let result;
   if (team1Strength > team2Strength) {
-    result = `${team1} wins!`;
+    result = `<b>${team1} wins!</b>`;
     updatePoints(team1, 3);
   } else if (team1Strength < team2Strength) {
-    result = `${team2} wins!`;
+    result = `<b>${team2} wins!</b>`;
     updatePoints(team2, 3);
   } else {
-    result = "The match ended in a draw.";
+    result = `<b>The match ended in a draw.</b>`;
     updatePoints(team1, 1);
     updatePoints(team2, 1);
   }
 
-  document.getElementById("result").innerText = result;
+  document.getElementById("result").innerHTML = result;
   populateLeaderboard(); // Update leaderboard after the match
-  currentRound++;
-  updateNextMatch();
+  currentRound += 3; // Move to the next round
+  updateNextRound();
 }
 
 // Calculate team strength based on all players (not just selected ones)
@@ -200,25 +217,25 @@ function updateBudgetDisplay() {
   document.getElementById("current-manager").textContent = team.manager;
 }
 
-// Update the next match display to show the next two matches
-function updateNextMatch() {
-  const nextMatchesContainer = document.getElementById("next-match");
-  nextMatchesContainer.innerHTML = ""; // Clear previous content
+// Update the next round display to show all matches for the upcoming round
+function updateNextRound() {
+  const nextRoundContainer = document.getElementById("next-round");
+  nextRoundContainer.innerHTML = ""; // Clear previous content
 
   if (currentRound < schedule.length) {
-    // Show up to two matches
-    const matchesToShow = schedule.slice(currentRound, currentRound + 2);
-    matchesToShow.forEach(([team1, team2], index) => {
+    // Show up to three matches for the current round
+    const roundMatches = schedule.slice(currentRound, currentRound + 3);
+    roundMatches.forEach(([team1, team2], index) => {
       const matchElement = document.createElement("p");
       matchElement.innerHTML = `
-        Match ${currentRound + index + 1}: 
+        Match ${currentRound / 3 + index + 1}: 
         <span onclick="showTeamRoster('${team1}')">${team1}</span> vs 
         <span onclick="showTeamRoster('${team2}')">${team2}</span>
       `;
-      nextMatchesContainer.appendChild(matchElement);
+      nextRoundContainer.appendChild(matchElement);
     });
   } else {
-    nextMatchesContainer.textContent = "Season Over!";
+    nextRoundContainer.textContent = "Season Over!";
   }
 }
 
@@ -257,7 +274,7 @@ function populatePlayerTable() {
 // Validate selected players
 function validateSelectedPlayers() {
   const selectedPlayers = document.querySelectorAll(".player-checkbox:checked").length;
-  const playButton = document.getElementById("play-next-match");
+  const playButton = document.getElementById("play-next-round");
   if (selectedPlayers >= 6) {
     playButton.disabled = false;
   } else {
@@ -294,45 +311,6 @@ function sellPlayer(playerName) {
   updateBudgetDisplay();
 }
 
-// Show Team Roster in a Modal with Buy Options
-function showTeamRoster(teamName) {
-  const team = league.find((t) => t.name === teamName);
-  const modal = document.getElementById("other-team-roster-modal");
-  const table = document.getElementById("other-player-table");
-  const teamNameHeader = document.getElementById("other-team-name");
-
-  // Update the modal title
-  teamNameHeader.textContent = `${team.name} Roster`;
-
-  // Populate the player table
-  table.innerHTML = `
-    <tr>
-      <th>Player Name</th>
-      <th>Performance Level</th>
-      <th>Action</th>
-    </tr>
-  `;
-  team.players.forEach((player) => {
-    const row = table.insertRow();
-    const cellName = row.insertCell(0);
-    const cellPerformance = row.insertCell(1);
-    const cellAction = row.insertCell(2);
-    cellName.textContent = player.name;
-    cellPerformance.textContent = player.performance;
-    cellAction.innerHTML = `
-      <button onclick="buyPlayer('${player.name}', '${team.name}')">Buy</button>
-    `;
-  });
-
-  // Show the modal
-  modal.style.display = "block";
-
-  // Close modal when clicking the close button
-  document.querySelector("#other-team-roster-modal .close").onclick = () => {
-    modal.style.display = "none";
-  };
-}
-
 // Buy a player from another team
 function buyPlayer(playerName, sellerTeamName) {
   const currentTeamObj = league.find((t) => t.name === currentTeam);
@@ -365,6 +343,51 @@ function buyPlayer(playerName, sellerTeamName) {
   updateBudgetDisplay();
 }
 
+// Show Team Roster in a Modal with Buy Options
+function showTeamRoster(teamName) {
+  const team = league.find((t) => t.name === teamName);
+  const modal = document.getElementById("other-team-roster-modal");
+  const table = document.getElementById("other-player-table");
+  const teamNameHeader = document.getElementById("other-team-name");
+
+  // Update the modal title
+  teamNameHeader.textContent = `${team.name} Roster`;
+
+  // Populate the player table
+  table.innerHTML = `
+    <tr>
+      <th>Player Name</th>
+      <th>Performance Level</th>
+      <th>Action</th>
+    </tr>
+  `;
+  team.players.forEach((player) => {
+    const row = table.insertRow();
+    const cellName = row.insertCell(0);
+    const cellPerformance = row.insertCell(1);
+    const cellAction = row.insertCell(2);
+    cellName.textContent = player.name;
+    cellPerformance.textContent = player.performance;
+    if (team.name === currentTeam) {
+      cellAction.innerHTML = `
+        <button onclick="sellPlayer('${player.name}')">Sell</button>
+      `;
+    } else {
+      cellAction.innerHTML = `
+        <button onclick="buyPlayer('${player.name}', '${team.name}')">Buy</button>
+      `;
+    }
+  });
+
+  // Show the modal
+  modal.style.display = "block";
+
+  // Close modal when clicking the close button
+  document.querySelector("#other-team-roster-modal .close").onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
 // Show Team Schedule
 function showTeamSchedule() {
   const modal = document.getElementById("team-schedule-modal");
@@ -378,7 +401,9 @@ function showTeamSchedule() {
 
   filteredSchedule.forEach(([team1, team2], index) => {
     const listItem = document.createElement("li");
-    listItem.textContent = `Match ${index + 1}: ${team1} vs ${team2}`;
+    listItem.innerHTML = `Match ${index + 1}: 
+      <span onclick="showTeamRoster('${team1}')">${team1}</span> vs 
+      <span onclick="showTeamRoster('${team2}')">${team2}</span>`;
     scheduleList.appendChild(listItem);
   });
 
@@ -388,6 +413,35 @@ function showTeamSchedule() {
   document.querySelector("#team-schedule-modal .close").onclick = () => {
     modal.style.display = "none";
   };
+}
+
+// Show League Schedule
+function showLeagueSchedule() {
+  const modal = document.getElementById("league-schedule-modal");
+  const scheduleList = document.getElementById("league-schedule-list");
+  scheduleList.innerHTML = "";
+
+  schedule.forEach(([team1, team2], index) => {
+    const listItem = document.createElement("li");
+    listItem.innerHTML = `Match ${index + 1}: 
+      <span onclick="showTeamRoster('${team1}')">${team1}</span> vs 
+      <span onclick="showTeamRoster('${team2}')">${team2}</span>`;
+    scheduleList.appendChild(listItem);
+  });
+
+  modal.style.display = "block";
+
+  // Close modal when clicking the close button
+  document.querySelector("#league-schedule-modal .close").onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
+// Sort Roster by Performance
+function sortRosterByPerformance() {
+  const team = league.find((t) => t.name === currentTeam);
+  team.players.sort((a, b) => b.performance - a.performance); // Sort descending by performance
+  populatePlayerTable();
 }
 
 // Auto Select First 6 Players
@@ -405,7 +459,36 @@ function startOver() {
   schedule = [];
   currentRound = 0;
   currentTeam = "";
+  seasonNumber = 1;
   initializeGame(); // Reinitialize the game
+}
+
+// End the season
+function endSeason() {
+  const sortedTeams = league.sort((a, b) => b.points - a.points); // Sort teams by points
+  const winningTeams = sortedTeams.filter((team) => team.points === sortedTeams[0].points); // Find all teams with the highest points
+
+  // Award $10,000 to each winning team
+  winningTeams.forEach((team) => {
+    team.budget += 10000;
+  });
+
+  // Display a congratulatory message
+  let message = `Season ${seasonNumber} has ended!\n`;
+  if (winningTeams.length === 1) {
+    message += `Congratulations to ${winningTeams[0].name} for winning the season! They have been awarded $10,000.`;
+  } else {
+    message += `It's a tie between the following teams: ${winningTeams.map((team) => team.name).join(", ")}. Each team has been awarded $10,000.`;
+  }
+  alert(message);
+
+  // Reset for the next season
+  seasonNumber++;
+  currentRound = 0;
+  schedule = generateSchedule();
+  league.forEach((team) => (team.points = 0)); // Reset points for all teams
+  populateLeaderboard();
+  updateNextRound();
 }
 
 // Initialize the game
