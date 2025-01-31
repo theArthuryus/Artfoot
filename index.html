@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Manager Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top Buttons -->
+  <div id="top-buttons">
+    <button onclick="startOver()">Start Over</button>
+    <button onclick="showTeamSchedule()">View Team Schedule</button>
+    <button onclick="showLeagueSchedule()">View League Schedule</button>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="leaderboard">
+    <h2>Leaderboard</h2>
+    <table id="leaderboard-table"></table>
+  </div>
+
+  <!-- Team Name Display -->
+  <div id="team-name-display">
+    <h2>Your Team: <span id="current-team-name"></span></h2>
+  </div>
+
+  <!-- Budget and Manager Information -->
+  <div id="budget-info">
+    <p>Budget: $<span id="current-budget">0</span></p>
+    <p>Manager: <span id="current-manager"></span></p>
+  </div>
+
+  <!-- Next Round Matches -->
+  <div id="next-round-matches">
+    <h3>Next Round Matches</h3>
+    <div id="next-round"></div>
+  </div>
+
+  <!-- Player Table -->
+  <div id="player-table-container">
+    <h2>Your Roster</h2>
+    <button onclick="sortRosterByPerformance()">Sort by Performance</button>
+    <button onclick="autoSelectFirst6()">Auto Select First 6 Players</button>
+    <table id="player-table"></table>
+  </div>
+
+  <!-- Play Next Round Button -->
+  <div id="play-next-round-container">
+    <button id="play-next-round" onclick="playNextRound()" disabled>Play Next Round</button>
+    <p id="result"></p>
+  </div>
+
+  <!-- Modals -->
+  <!-- Other Team Roster Modal -->
+  <div id="other-team-roster-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="other-team-name"></h2>
+      <table id="other-player-table"></table>
+    </div>
+  </div>
+
+  <!-- Team Schedule Modal -->
+  <div id="team-schedule-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Your Team Schedule</h2>
+      <ul id="schedule-list"></ul>
+    </div>
+  </div>
+
+  <!-- League Schedule Modal -->
+  <div id="league-schedule-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>League Schedule</h2>
+      <ul id="league-schedule-list"></ul>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script src="script.js"></script>
+</body>
+</html>
