@@ -75,6 +75,22 @@ button:disabled {
   color: black;
 }
 
-#top-buttons {
-  margin-bottom: 20px;
+#team-name-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#play-next-round {
+  margin-left: 20px;
+}
+
+#last-match-results {
+  text-align: left;
+  margin-left: 20px;
+}
+
+#next-round-matches {
+  text-align: center;
+  margin-left: 20%;
 }
