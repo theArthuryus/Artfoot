@@ -14,6 +14,11 @@
     <button onclick="showLeagueSchedule()">View League Schedule</button>
   </div>
 
+  <!-- Current Season Display -->
+  <div id="current-season">
+    <h2>Season: <span id="season-number">1</span></h2>
+  </div>
+
   <!-- Leaderboard -->
   <div id="leaderboard">
     <h2>Leaderboard</h2>
@@ -23,12 +28,19 @@
   <!-- Team Name Display -->
   <div id="team-name-display">
     <h2>Your Team: <span id="current-team-name"></span></h2>
+    <button id="play-next-round" onclick="playNextRound()" disabled>Play Next Round</button>
   </div>
 
   <!-- Budget and Manager Information -->
   <div id="budget-info">
     <p>Budget: $<span id="current-budget">0</span></p>
     <p>Manager: <span id="current-manager"></span></p>
+  </div>
+
+  <!-- Last Match Results -->
+  <div id="last-match-results">
+    <h3>Last Match Results</h3>
+    <div id="last-results"></div>
   </div>
 
   <!-- Next Round Matches -->
@@ -43,12 +55,6 @@
     <button onclick="sortRosterByPerformance()">Sort by Performance</button>
     <button onclick="autoSelectFirst6()">Auto Select First 6 Players</button>
     <table id="player-table"></table>
-  </div>
-
-  <!-- Play Next Round Button -->
-  <div id="play-next-round-container">
-    <button id="play-next-round" onclick="playNextRound()" disabled>Play Next Round</button>
-    <p id="result"></p>
   </div>
 
   <!-- Modals -->
@@ -79,7 +85,19 @@
     </div>
   </div>
 
-  <!-- Script -->
-  <script src="script.js"></script>
+  <!-- Script References -->
+  <script type="module" src="matchMechanics.js"></script>
+  <script type="module" src="script.js"></script>
+  <script type="module">
+    // Import all necessary functions from script.js
+    import { startOver, showTeamSchedule, showLeagueSchedule, sortRosterByPerformance, autoSelectFirst6 } from './script.js';
+
+    // Attach functions to the global window object
+    window.startOver = startOver;
+    window.showTeamSchedule = showTeamSchedule;
+    window.showLeagueSchedule = showLeagueSchedule;
+    window.sortRosterByPerformance = sortRosterByPerformance;
+    window.autoSelectFirst6 = autoSelectFirst6;
+  </script>
 </body>
 </html>
